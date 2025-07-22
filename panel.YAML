@@ -1,92 +1,130 @@
-thresholds:
-  # Regra para status geral (0=OK, 1=Problema/Alerta)
-  - name: 'status_geral'
-    levels:
-      - value: 1
-        color: 'green'
-      - value: 0
-        color: 'red'
+anchorLinks:
+  # Define as regras de cores uma vez e reutiliza com um apelido (*).
+  - thresholds: &status_geral
+      # Lembre-se: seu Zabbix retorna 1=OK e 0=Problema.
+      - { color: "green", level: 1 }      # Nível 1 será verde
+      - { color: "red", level: 0 }        # Nível 0 será vermelho
 
-  # Regra para tráfego de rede em bits/s
-  - name: 'nivel_trafego'
-    levels:
-      - value: 0           # 0 bps
-        color: 'green'
-      - value: 500000000   # 500 Mbps
-        color: 'orange'
-      - value: 800000000   # 800 Mbps
-        color: 'red'
+  - thresholds: &nivel_trafego
+      - { color: "green", level: 0 }
+      - { color: "orange", level: 500000000 } # 500 Mbps
+      - { color: "red", level: 800000000 }    # 800 Mbps
 
-  # Regra para uso de CPU em %
-  - name: 'nivel_cpu'
-    levels:
-      - value: 0
-        color: 'green'
-      - value: 80
-        color: 'orange'
-      - value: 95
-        color: 'red'
+  - thresholds: &nivel_cpu
+      - { color: "green", level: 0 }
+      - { color: "orange", level: 80 }
+      - { color: "red", level: 95 }
+      
+  - thresholds: &nivel_temperatura
+      - { color: "blue", level: 0 }
+      - { color: "orange", level: 25 }
+      - { color: "red", level: 30 }
 
-  # Regra para temperatura em Celsius
-  - name: 'nivel_temperatura'
-    levels:
-      - value: 0
-        color: 'blue'
-      - value: 25
-        color: 'orange'
-      - value: 30
-        color: 'red'
-
-
-mappings:
+cellIdPreamble: "" # Deixe em branco pois seus IDs não têm prefixo.
+gradientMode: "hue"
+cells:
   # --- CLOUDS ---
-  - { metricName: 'ping_azure',         cellId: 'AZURECLOUD',       type: 'fillColor', thresholdName: 'status_geral' }
-  - { metricName: 'ping_aws',           cellId: 'AWSCLOUD',         type: 'fillColor', thresholdName: 'status_geral' }
-  - { metricName: 'ping_zadara',        cellId: 'ZADARACLOUD',      type: 'fillColor', thresholdName: 'status_geral' }
-  - { metricName: 'ping_google',        cellId: 'GOOGLECLOUD',      type: 'fillColor', thresholdName: 'status_geral' }
-  - { metricName: 'ping_zoho',          cellId: 'ZOHOCLOUD',        type: 'fillColor', thresholdName: 'status_geral' }
-  - { metricName: 'ping_watchguard',    cellId: 'WATCHGAURDCLOUD',  type: 'fillColor', thresholdName: 'status_geral' }
+  AZURECLOUD:
+    dataRef: 'ping_azure'
+    fillColor:
+      thresholds: *status_geral
+  AWSCLOUD:
+    dataRef: 'ping_aws'
+    fillColor:
+      thresholds: *status_geral
+  ZADARACLOUD:
+    dataRef: 'ping_zadara'
+    fillColor:
+      thresholds: *status_geral
+  GOOGLECLOUD:
+    dataRef: 'ping_google'
+    fillColor:
+      thresholds: *status_geral
+  ZOHOCLOUD:
+    dataRef: 'ping_zoho'
+    fillColor:
+      thresholds: *status_geral
+  WATCHGAURDCLOUD:
+    dataRef: 'ping_watchguard'
+    fillColor:
+      thresholds: *status_geral
 
   # --- PROVEDORES DE INTERNET (ISPs) ---
-  - { metricName: 'latencia_vivo',      cellId: 'ISP01VIVO',        type: 'fillColor', thresholdName: 'status_geral' }
-  - { metricName: 'latencia_embratel',  cellId: 'ISP02EMBRATEL',    type: 'fillColor', thresholdName: 'status_geral' }
+  ISP01VIVO:
+    dataRef: 'latencia_vivo'
+    fillColor:
+      thresholds: *status_geral
+  ISP02EMBRATEL: # Corrigi o ID que estava 'ISP01' na lista anterior
+    dataRef: 'latencia_embratel'
+    fillColor:
+      thresholds: *status_geral
 
-  # --- ROTEADORES DE BORDA ---
-  - { metricName: 'trafego_vivo',       cellId: 'VIVO',             type: 'label',     label: { text: '${value:fmt(bits/s)}' } }
-  - { metricName: 'trafego_embratel',   cellId: 'EMBRATEL',         type: 'label',     label: { text: '${value:fmt(bits/s)}' } }
-
-  # --- FIREWALL (Exemplo com múltiplos mapeamentos) ---
-  - metricName: 'ping_firewall'
-    cellId: 'FirewallWatchgaurd'
-    type: 'strokeColor'  # Muda a cor da borda com base no status do ping
-    thresholdName: 'status_geral'
-  - metricName: 'trafego_in_firewall'
-    cellId: 'FirewallWatchgaurd'
-    type: 'label'
+  VIVO:
+    dataRef: 'trafego_vivo'
     label:
-      text: 'In: ${value:fmt(bits/s)}' # Exibe o tráfego de entrada
-      yOffset: -15 # Ajusta a posição do texto para cima
-  - metricName: 'trafego_out_firewall'
-    cellId: 'FirewallWatchgaurd'
-    type: 'label'
+      separator: "replace"
+      units: "bits/s"
+  EMBRATEL:
+    dataRef: 'trafego_embratel'
     label:
-      text: 'Out: ${value:fmt(bits/s)}' # Exibe o tráfego de saída
-      yOffset: 15 # Ajusta a posição do texto para baixo
+      separator: "replace"
+      units: "bits/s"
 
-  # --- SWITCHES ---
-  - { metricName: 'ping_sw_dmz',        cellId: 'SWITCHDMZ',        type: 'fillColor', thresholdName: 'status_geral' }
-  - { metricName: 'ping_sw_core',       cellId: 'SWCORE',           type: 'fillColor', thresholdName: 'status_geral' }
-  - { metricName: 'cpu_sw_core',        cellId: 'SWCORE',           type: 'label',     label: { text: 'CPU: ${value:fmt(percent)}' } }
-  - { metricName: 'ping_sw_2960',       cellId: 'SW2960',           type: 'fillColor', thresholdName: 'status_geral' }
+  FirewallWatchgaurd:
+    dataRef: 'ping_firewall' # Métrica principal para a cor da borda
+    strokeColor:
+      thresholds: *status_geral
+    label:
+      # Exibe múltiplos valores no mesmo label
+      text: "In: ${data['trafego_in_firewall']:fmt(bits/s)} | Out: ${data['trafego_out_firewall']:fmt(bits/s)}"
+      
+  SWITCHDMZ:
+    dataRef: 'ping_sw_dmz'
+    fillColor:
+      thresholds: *status_geral
+  SWCORE:
+    dataRef: 'ping_sw_core'
+    fillColor:
+      thresholds: *status_geral
+    label:
+      dataRef: 'cpu_sw_core' # Pode usar um dataRef diferente para o label
+      separator: "append"
+      text: "CPU:"
+      units: "%"
+  SW2960:
+    dataRef: 'ping_sw_2960'
+    fillColor:
+      thresholds: *status_geral
 
-  # --- SERVIDORES E DISPOSITIVOS NA DMZ ---
-  - { metricName: 'ping_backend_pg',    cellId: 'BackendPostgre',   type: 'fillColor', thresholdName: 'status_geral' }
-  - { metricName: 'ping_dimension',     cellId: 'dimension',        type: 'fillColor', thresholdName: 'status_geral' }
-  - { metricName: 'cpu_dimension',      cellId: 'dimension',        type: 'label',     label: { text: '${value:fmt(percent)}' } }
-  
-  # --- SERVIDORES INTERNOS E OUTROS DISPOSITIVOS ---
-  - { metricName: 'temp_rack',          cellId: 'TermometroIP',     type: 'label',     label: { text: '${value:fmt(temperature)}' } }
-  - { metricName: 'temp_rack',          cellId: 'TermometroIP',     type: 'fillColor', thresholdName: 'nivel_temperatura' }
-  - { metricName: 'status_servico_postgres', cellId: 'BackendPostgre2', type: 'fillColor', thresholdName: 'status_geral' }
-  - { metricName: 'ping_cfs01',         cellId: 'CFS01',            type: 'fillColor', thresholdName: 'status_geral' }
-  - { metricName: 'ping_cfs02',         cellId: 'CFS02',            type: 'fillColor', thresholdName: 'status_geral' }
+  BackendPostgre:
+    dataRef: 'ping_backend_pg'
+    fillColor:
+      thresholds: *status_geral
+  dimension:
+    dataRef: 'ping_dimension'
+    fillColor:
+      thresholds: *status_geral
+    label:
+      dataRef: 'cpu_dimension'
+      separator: "append"
+      text: "CPU:"
+      units: "%"
+  TermometroIP:
+    dataRef: 'temp_rack'
+    fillColor:
+      thresholds: *nivel_temperatura
+    label:
+      separator: "replace"
+      units: "°C"
+  BackendPostgre2:
+    dataRef: 'status_servico_postgres'
+    fillColor:
+      thresholds: *status_geral
+  CFS01:
+    dataRef: 'ping_cfs01'
+    fillColor:
+      thresholds: *status_geral
+  CFS02:
+    dataRef: 'ping_cfs02'
+    fillColor:
+      thresholds: *status_geral
