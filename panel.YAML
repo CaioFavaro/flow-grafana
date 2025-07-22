@@ -2,9 +2,9 @@ thresholds:
   # Regra para status geral (0=OK, 1=Problema/Alerta)
   - name: 'status_geral'
     levels:
-      - value: 0
-        color: 'green'
       - value: 1
+        color: 'green'
+      - value: 0
         color: 'red'
 
   # Regra para tráfego de rede em bits/s
