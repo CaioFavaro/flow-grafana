@@ -1,15 +1,3 @@
-# ===================================================================
-#      PANEL CONFIG PARA TOPOLOGIA DE REDE - 5F
-# ===================================================================
-# Instruções:
-# 1. Copie e cole este código no campo "Panel Config" do Grafana.
-# 2. Na aba "Query", crie uma consulta para cada "metricName" abaixo.
-# 3. O "Alias" da sua query DEVE SER IGUAL ao "metricName".
-# ===================================================================
-
-# -------------------------------------------------------------------
-# Seção 1: REGRAS DE CORES (THRESHOLDS)
-# -------------------------------------------------------------------
 thresholds:
   # Regra para status geral (0=OK, 1=Problema/Alerta)
   - name: 'status_geral'
@@ -49,10 +37,7 @@ thresholds:
       - value: 30
         color: 'red'
 
-# -------------------------------------------------------------------
-# Seção 2: MAPEAMENTOS (MAPPINGS)
-# Conectando os dados aos elementos do seu desenho.
-# -------------------------------------------------------------------
+
 mappings:
   # --- CLOUDS ---
   - { metricName: 'ping_azure',         cellId: 'AZURECLOUD',       type: 'fillColor', thresholdName: 'status_geral' }
