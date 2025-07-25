@@ -1,110 +1,51 @@
-# ===================================================================
-#      PAINEL DE TOPOLOGIA - VERSÃO FINAL E CORRIGIDA
-# ===================================================================
-
-# -------------------------------------------------------------------
-# Seção de Âncoras: Definimos nossas regras aqui para reutilizar depois.
-# -------------------------------------------------------------------
 anchorLinks:
-  # Define uma regra de status LÓGICA (0 = OK, 1 = Problema)
-  - thresholds: &status_geral_levels
-      - { color: "green", level: 0 }
-      - { color: "red", level: 1 }
-
-  # Define um MAPEAMENTO (tradutor) reutilizável para o status do Zabbix
-  - valueMappings: &zabbix_ping_mapper
-      # TRADUÇÃO: Se o Zabbix mandar o texto '1' (online), use o nível '0' (verde).
-      - { text: '1', value: 0 }
-      # TRADUÇÃO: Se o Zabbix mandar o texto '0' (offline), use o nível '1' (vermelho).
-      - { text: '0', value: 1 }
-
-  # Define um BLOCO DE COR INTEIRO para status de ping, que já inclui o tradutor
   - fillColor: &ping_status_color
-      thresholds: *status_geral_levels
-      valueMappings: *zabbix_ping_mapper
+      thresholdsRef: 'status_geral'         # Referência à regra de cor no siteConfig
+      valueMappingsRef: 'zabbix_ping_status'  # Referência ao "tradutor" no siteConfig
 
-# -------------------------------------------------------------------
-# Seção Principal
-# -------------------------------------------------------------------
+
 cellIdPreamble: ""
 cells:
   # --- CLOUDS E ISPs (todos usam a mesma regra de cor para ping) ---
-  AZURECLOUD:
-    dataRef: 'ping_azure'
-    fillColor: *ping_status_color
-  AWSCLOUD:
-    dataRef: 'ping_aws'
-    fillColor: *ping_status_color
-  ZADARACLOUD:
-    dataRef: 'ping_zadara'
-    fillColor: *ping_status_color
-  GOOGLECLOUD:
-    dataRef: 'ping_google'
-    fillColor: *ping_status_color
-  ZOHOCLOUD:
-    dataRef: 'ping_zoho'
-    fillColor: *ping_status_color
-  WATCHGAURDCLOUD:
-    dataRef: 'ping_watchguard'
-    fillColor: *ping_status_color
-  ISP01VIVO:
-    dataRef: 'latencia_vivo'
-    fillColor: *ping_status_color
-  ISP02EMBRATEL:
-    dataRef: 'latencia_embratel'
-    fillColor: *ping_status_color
+  AZURECLOUD:      { dataRef: 'ping_azure',      fillColor: *ping_status_color }
+  AWSCLOUD:        { dataRef: 'ping_aws',        fillColor: *ping_status_color }
+  ZADARACLOUD:     { dataRef: 'ping_zadara',     fillColor: *ping_status_color }
+  GOOGLECLOUD:     { dataRef: 'ping_google',     fillColor: *ping_status_color }
+  ZOHOCLOUD:       { dataRef: 'ping_zoho',       fillColor: *ping_status_color }
+  WATCHGAURDCLOUD: { dataRef: 'ping_watchguard', fillColor: *ping_status_color }
+  ISP01VIVO:       { dataRef: 'latencia_vivo',   fillColor: *ping_status_color }
+  ISP02EMBRATEL:   { dataRef: 'latencia_embratel',fillColor: *ping_status_color }
 
-  # --- ROTEADORES (exibindo tráfego, sem mudança de cor por enquanto) ---
+ 
   VIVO:
     dataRef: 'trafego_vivo'
-    label:
-      separator: "replace"
-      units: "bits/s"
+    label: { separator: "replace", units: "bits/s" }
   EMBRATEL:
     dataRef: 'trafego_embratel'
-    label:
-      separator: "replace"
-      units: "bits/s"
+    label: { separator: "replace", units: "bits/s" }
 
-  # --- FIREWALL ---
+  
   FirewallWatchgaurd:
     dataRef: 'ping_firewall'
-    strokeColor: # Usando a mesma lógica para a cor da borda
-      thresholds: *status_geral_levels
-      valueMappings: *zabbix_ping_mapper
+    strokeColor: # Usando a referência diretamente para a cor da borda
+      thresholdsRef: 'status_geral'
+      valueMappingsRef: 'zabbix_ping_status'
     label:
-      # Exibe múltiplos valores no mesmo label
       text: "In: ${data['trafego_in_firewall']:fmt(bits/s)} | Out: ${data['trafego_out_firewall']:fmt(bits/s)}"
       
-  # --- SWITCHES ---
-  SWITCHDMZ:
-    dataRef: 'ping_sw_dmz'
-    fillColor: *ping_status_color
-  SWCORE:
-    dataRef: 'ping_sw_core'
-    fillColor: *ping_status_color
-  SW2960:
-    dataRef: 'ping_sw_2960'
-    fillColor: *ping_status_color
 
-  # --- SERVIDORES E DISPOSITIVOS ---
-  BackendPostgre:
-    dataRef: 'ping_backend_pg'
-    fillColor: *ping_status_color
-  dimension:
-    dataRef: 'ping_dimension'
-    fillColor: *ping_status_color
+  SWITCHDMZ: { dataRef: 'ping_sw_dmz',  fillColor: *ping_status_color }
+  SWCORE:    { dataRef: 'ping_sw_core', fillColor: *ping_status_color }
+  SW2960:    { dataRef: 'ping_sw_2960', fillColor: *ping_status_color }
+
+ 
+  BackendPostgre: { dataRef: 'ping_backend_pg', fillColor: *ping_status_color }
+  dimension:      { dataRef: 'ping_dimension',  fillColor: *ping_status_color }
   TermometroIP:
     dataRef: 'temp_rack'
-    label:
-      separator: "replace"
-      units: "°C"
-  BackendPostgre2:
-    dataRef: 'status_servico_postgres'
-    fillColor: *ping_status_color
-  CFS01:
-    dataRef: 'ping_cfs01'
-    fillColor: *ping_status_color
-  CFS02:
-    dataRef: 'ping_cfs02'
-    fillColor: *ping_status_color
+    label: { separator: "replace", units: "°C" }
+    fillColor:
+      thresholdsRef: 'nivel_temperatura' # Usando a regra de temperatura do siteConfig
+  BackendPostgre2: { dataRef: 'status_servico_postgres', fillColor: *ping_status_color }
+  CFS01: { dataRef: 'ping_cfs01', fillColor: *ping_status_color }
+  CFS02: { dataRef: 'ping_cfs02', fillColor: *ping_status_color }
