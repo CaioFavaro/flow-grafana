@@ -1,63 +1,60 @@
+# ===================================================================
+#      PAINEL DE TOPOLOGIA - VERSÃO FINAL E CORRIGIDA
+# ===================================================================
+
+# -------------------------------------------------------------------
+# Seção de Âncoras: Definimos nossas regras aqui para reutilizar depois.
+# -------------------------------------------------------------------
 anchorLinks:
-  - thresholds: &status_geral
-      # Lembre-se: seu Zabbix retorna 1=OK e 0=Problema.
-      - { color: "green", level: 1 }      
-      - { color: "red", level: 0 }        
-
-  - thresholds: &nivel_trafego
+  # Define uma regra de status LÓGICA (0 = OK, 1 = Problema)
+  - thresholds: &status_geral_levels
       - { color: "green", level: 0 }
-      - { color: "orange", level: 500000000 } 
-      - { color: "red", level: 800000000 }    
+      - { color: "red", level: 1 }
 
-  - thresholds: &nivel_cpu
-      - { color: "green", level: 0 }
-      - { color: "orange", level: 80 }
-      - { color: "red", level: 95 }
-      
-  - thresholds: &nivel_temperatura
-      - { color: "blue", level: 0 }
-      - { color: "orange", level: 25 }
-      - { color: "red", level: 30 }
+  # Define um MAPEAMENTO (tradutor) reutilizável para o status do Zabbix
+  - valueMappings: &zabbix_ping_mapper
+      # TRADUÇÃO: Se o Zabbix mandar o texto '1' (online), use o nível '0' (verde).
+      - { text: '1', value: 0 }
+      # TRADUÇÃO: Se o Zabbix mandar o texto '0' (offline), use o nível '1' (vermelho).
+      - { text: '0', value: 1 }
 
-cellIdPreamble: "" 
-gradientMode: "hue"
+  # Define um BLOCO DE COR INTEIRO para status de ping, que já inclui o tradutor
+  - fillColor: &ping_status_color
+      thresholds: *status_geral_levels
+      valueMappings: *zabbix_ping_mapper
+
+# -------------------------------------------------------------------
+# Seção Principal
+# -------------------------------------------------------------------
+cellIdPreamble: ""
 cells:
-  # --- CLOUDS ---
+  # --- CLOUDS E ISPs (todos usam a mesma regra de cor para ping) ---
   AZURECLOUD:
     dataRef: 'ping_azure'
-    fillColor:
-      thresholds: *status_geral
+    fillColor: *ping_status_color
   AWSCLOUD:
     dataRef: 'ping_aws'
-    fillColor:
-      thresholds: *status_geral
+    fillColor: *ping_status_color
   ZADARACLOUD:
     dataRef: 'ping_zadara'
-    fillColor:
-      thresholds: *status_geral
+    fillColor: *ping_status_color
   GOOGLECLOUD:
     dataRef: 'ping_google'
-    fillColor:
-      thresholds: *status_geral
+    fillColor: *ping_status_color
   ZOHOCLOUD:
     dataRef: 'ping_zoho'
-    fillColor:
-      thresholds: *status_geral
+    fillColor: *ping_status_color
   WATCHGAURDCLOUD:
     dataRef: 'ping_watchguard'
-    fillColor:
-      thresholds: *status_geral
-
-  # --- PROVEDORES DE INTERNET (ISPs) ---
+    fillColor: *ping_status_color
   ISP01VIVO:
     dataRef: 'latencia_vivo'
-    fillColor:
-      thresholds: *status_geral
-  ISP02EMBRATEL: 
+    fillColor: *ping_status_color
+  ISP02EMBRATEL:
     dataRef: 'latencia_embratel'
-    fillColor:
-      thresholds: *status_geral
+    fillColor: *ping_status_color
 
+  # --- ROTEADORES (exibindo tráfego, sem mudança de cor por enquanto) ---
   VIVO:
     dataRef: 'trafego_vivo'
     label:
@@ -69,60 +66,45 @@ cells:
       separator: "replace"
       units: "bits/s"
 
+  # --- FIREWALL ---
   FirewallWatchgaurd:
-    dataRef: 'ping_firewall' 
-    strokeColor:
-      thresholds: *status_geral
+    dataRef: 'ping_firewall'
+    strokeColor: # Usando a mesma lógica para a cor da borda
+      thresholds: *status_geral_levels
+      valueMappings: *zabbix_ping_mapper
     label:
+      # Exibe múltiplos valores no mesmo label
       text: "In: ${data['trafego_in_firewall']:fmt(bits/s)} | Out: ${data['trafego_out_firewall']:fmt(bits/s)}"
       
+  # --- SWITCHES ---
   SWITCHDMZ:
     dataRef: 'ping_sw_dmz'
-    fillColor:
-      thresholds: *status_geral
+    fillColor: *ping_status_color
   SWCORE:
     dataRef: 'ping_sw_core'
-    fillColor:
-      thresholds: *status_geral
-    label:
-      dataRef: 'cpu_sw_core' # Pode usar um dataRef diferente para o label
-      separator: "append"
-      text: "CPU:"
-      units: "%"
+    fillColor: *ping_status_color
   SW2960:
     dataRef: 'ping_sw_2960'
-    fillColor:
-      thresholds: *status_geral
+    fillColor: *ping_status_color
 
+  # --- SERVIDORES E DISPOSITIVOS ---
   BackendPostgre:
     dataRef: 'ping_backend_pg'
-    fillColor:
-      thresholds: *status_geral
+    fillColor: *ping_status_color
   dimension:
     dataRef: 'ping_dimension'
-    fillColor:
-      thresholds: *status_geral
-    label:
-      dataRef: 'cpu_dimension'
-      separator: "append"
-      text: "CPU:"
-      units: "%"
+    fillColor: *ping_status_color
   TermometroIP:
     dataRef: 'temp_rack'
-    fillColor:
-      thresholds: *nivel_temperatura
     label:
       separator: "replace"
       units: "°C"
   BackendPostgre2:
     dataRef: 'status_servico_postgres'
-    fillColor:
-      thresholds: *status_geral
+    fillColor: *ping_status_color
   CFS01:
     dataRef: 'ping_cfs01'
-    fillColor:
-      thresholds: *status_geral
+    fillColor: *ping_status_color
   CFS02:
     dataRef: 'ping_cfs02'
-    fillColor:
-      thresholds: *status_geral
+    fillColor: *ping_status_color
