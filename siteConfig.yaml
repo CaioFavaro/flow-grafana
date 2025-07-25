@@ -1,0 +1,33 @@
+colors:
+  verde_ok: 'green'
+  vermelho_problema: 'red'
+  laranja_alerta: 'orange'
+  azul_info: 'blue'
+
+thresholds:
+  status_geral:
+    - { color: verde_ok, level: 0 }
+    - { color: vermelho_problema, level: 1 }
+
+  nivel_trafego:
+    - { color: verde_ok, level: 0 }
+    - { color: laranja_alerta, level: 500000000 } # 500 Mbps
+    - { color: vermelho_problema, level: 800000000 }    # 800 Mbps
+
+  nivel_cpu:
+    - { color: verde_ok, level: 0 }
+    - { color: laranja_alerta, level: 80 }
+    - { color: vermelho_problema, level: 95 }
+
+  nivel_temperatura:
+    - { color: azul_info, level: 0 }
+    - { color: laranja_alerta, level: 25 }
+    - { color: vermelho_problema, level: 30 }
+
+valueMappings:
+
+  zabbix_ping_status:
+
+    - { text: '1', value: 0 }
+ 
+    - { text: '0', value: 1 }
